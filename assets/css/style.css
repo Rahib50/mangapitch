@@ -1,0 +1,9 @@
+/* Base styles */
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: #111; background: #f7f7fb; }
+a { color: inherit; }
+.container { width: min(1000px, calc(100% - 32px)); margin: 0 auto; }
+.card { background: #fff; border: 1px solid #e9e9f2; border-radius: 12px; padding: 16px; }
+.nav { display: flex; gap: 12px; flex-wrap: wrap; padding: 12px 0; }
+.nav a { text-decoration: none; padding: 8px 10px; border-radius: 10px; border: 1px solid #e9e9f2; background: #fff; }
+.nav a:hover { background: #f1f2ff; }
