@@ -1,4 +1,3 @@
-/* Base styles */
 * { box-sizing: border-box; }
 body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: #111; background: #f7f7fb; }
 a { color: inherit; }
