@@ -1,16 +1,10 @@
--- ============================================================
--- seed.sql — MangaPitch Demo Data
--- Default password for ALL accounts: password
--- Import: phpMyAdmin → mangapitch → Import → seed.sql
--- ============================================================
-
 SET FOREIGN_KEY_CHECKS = 0;
 SET NAMES utf8mb4;
 USE mangapitch;
 
--- ─── USERS ────────────────────────────────────────────────────────────────────
+--USERS 
 INSERT INTO Users (UserID, Name, Email, Password, Role) VALUES
--- Mangakas
+--Mangakas
 (1,  'Hayao Miyazaki',   'miyazaki@ghibli.com',    '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Mangaka'),
 (2,  'Aoi Hiiragi',      'hiiragi@mail.com',        '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Mangaka'),
 (3,  'Tatsuki Fujimoto', 'fujimoto@mail.com',       '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Mangaka'),
@@ -28,7 +22,7 @@ INSERT INTO Users (UserID, Name, Email, Password, Role) VALUES
 -- Admin
 (14, 'Site Admin',       'admin@mangapitch.com',    '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Admin');
 
--- ─── SUBTYPES ─────────────────────────────────────────────────────────────────
+--SUBTYPES 
 INSERT INTO Mangaka (UserID, PortfolioLink) VALUES
 (1, 'https://ghibli.jp/miyazaki'),
 (2, 'https://ribon.jp/hiiragi'),
@@ -49,7 +43,7 @@ INSERT INTO Studio (UserID, RegistrationNumber) VALUES
 INSERT INTO Admin (UserID, AdminLevel) VALUES
 (14, 3);
 
--- ─── MANGA ────────────────────────────────────────────────────────────────────
+--MANGA
 INSERT INTO Manga (MangaID, MangakaID, Title, Synopsis, PublishDate) VALUES
 (1,  1, 'Nausicaa of the Valley of the Wind',
     'Set in a post-apocalyptic future overrun by a toxic jungle, Princess Nausicaa fights to bridge the divide between humanity and the giant insects that now dominate the earth, seeking coexistence over destruction.',
@@ -82,14 +76,13 @@ INSERT INTO Manga (MangaID, MangakaID, Title, Synopsis, PublishDate) VALUES
     'In a world where most people possess superpowers called Quirks, Izuku Midoriya is born without any. After inheriting a mysterious power from the greatest hero, he enrols in a prestigious hero academy and begins his gruelling path to greatness.',
     '2014-07-07');
 
--- ─── GENRES ───────────────────────────────────────────────────────────────────
--- Schema seed already inserted IDs 1–10
+--GENRES 
 -- (Action, Adventure, Comedy, Drama, Fantasy, Horror, Romance, Sci-Fi, Slice of Life, Thriller)
 INSERT INTO Genre (GenreID, GenreName) VALUES
 (11, 'Historical'),
 (12, 'Supernatural');
 
--- ─── MANGA_GENRE_MAP ──────────────────────────────────────────────────────────
+--MANGA_GENRE_MAP 
 INSERT INTO Manga_Genre_Map (MangaID, GenreID) VALUES
 -- Nausicaa: Action, Adventure, Fantasy, Sci-Fi
 (1,1),(1,2),(1,5),(1,8),
@@ -112,7 +105,7 @@ INSERT INTO Manga_Genre_Map (MangaID, GenreID) VALUES
 -- My Hero Academia: Action, Comedy, Fantasy
 (10,1),(10,3),(10,5);
 
--- ─── ANALYTICS ────────────────────────────────────────────────────────────────
+--ANALYTICS
 INSERT INTO Analytics (AnalyticsID, MangaID, TotalViews, VolumesSold) VALUES
 (1,  1,   450000,  12000),
 (2,  2,   280000,   8500),
@@ -125,7 +118,7 @@ INSERT INTO Analytics (AnalyticsID, MangaID, TotalViews, VolumesSold) VALUES
 (9,  9,  1500000,  38000),
 (10,10,  2400000,  55000);
 
--- ─── BIDS ─────────────────────────────────────────────────────────────────────
+--BIDS
 INSERT INTO Bids (BidID, MangaID, StudioID, BidAmount, Status) VALUES
 -- Accepted (each has a contract)
 (1,  1,  10,  500000.00, 'Accepted'),   -- Nausicaa     → Ghibli
@@ -146,7 +139,7 @@ INSERT INTO Bids (BidID, MangaID, StudioID, BidAmount, Status) VALUES
 (14, 7,  12, 1500000.00, 'Pending'),    -- JJK          → ufotable
 (15,10,  11, 1200000.00, 'Pending');    -- MHA          → MAPPA
 
--- ─── CONTRACTS ────────────────────────────────────────────────────────────────
+--CONTRACTS
 INSERT INTO Contracts (ContractID, BidID, SignedDate, ProductStatus) VALUES
 (1,  1, '1989-03-15', 'Released'),
 (2,  2, '1989-07-22', 'Released'),
@@ -159,7 +152,7 @@ INSERT INTO Contracts (ContractID, BidID, SignedDate, ProductStatus) VALUES
 (9,  9, '2003-10-04', 'Released'),
 (10,10, '2023-03-25', 'In-Production');
 
--- ─── MESSAGES ─────────────────────────────────────────────────────────────────
+--MESSAGES
 INSERT INTO Messages (MessageID, SenderID, ReceiverID, MessageText) VALUES
 (1,  10, 1,  'Hello Mr. Miyazaki, we are very interested in acquiring the animation rights to Nausicaa. Would you be open to discussing terms?'),
 (2,  1,  10, 'Thank you for reaching out. I am open to discussions, but preserving the artistic vision throughout production is non-negotiable for me.'),

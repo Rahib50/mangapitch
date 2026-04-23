@@ -101,3 +101,10 @@ INSERT INTO Genre (GenreName) VALUES
 ('Action'), ('Adventure'), ('Comedy'), ('Drama'),
 ('Fantasy'), ('Horror'), ('Romance'), ('Sci-Fi'),
 ('Slice of Life'), ('Thriller');
+
+
+-- ============================================================
+-- seed.sql — MangaPitch Demo Data
+-- Default password for ALL accounts: password
+-- Import: phpMyAdmin → mangapitch → Import → seed.sql
+-- ============================================================
