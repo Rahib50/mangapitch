@@ -23,8 +23,12 @@ $pageTitle = $pageTitle ?? 'MangaPitch';
       <a href="/bids/index.php">Bids</a>
       <a href="/contracts/index.php">Contracts</a>
       <a href="/messages/index.php">Messages</a>
-      <?php if (!empty($_SESSION['user'])): ?>
-        <a href="/dashboard/<?= htmlspecialchars($_SESSION['user']['role'] ?? 'mangaka') ?>.php">Dashboard</a>
+      <?php if (!empty($_SESSION['user_id'])): ?>
+        <?php
+          $role = strtolower((string)($_SESSION['role'] ?? 'mangaka')); // DB stores Mangaka/Studio/Admin
+          $dashboard = in_array($role, ['mangaka', 'studio', 'admin'], true) ? $role : 'mangaka';
+        ?>
+        <a href="/dashboard/<?= htmlspecialchars($dashboard) ?>.php">Dashboard</a>
         <a href="/auth/logout.php">Logout</a>
       <?php else: ?>
         <a href="/auth/login.php">Login</a>
