@@ -1,7 +1,4 @@
 
--- MangaPitch Database Schema
--- Import via XAMPP phpMyAdmin or: mysql -u root -p < schema.sql
-
 CREATE DATABASE IF NOT EXISTS mangapitch;
 USE mangapitch;
 
