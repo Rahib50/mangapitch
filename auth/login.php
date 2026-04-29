@@ -2,9 +2,8 @@
 require_once '../config/db.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-// Redirect if already logged in
 if (!empty($_SESSION['user_id'])) {
-    header('Location: /dashboard/' . strtolower($_SESSION['role']) . '.php');
+    header('Location: ' . BASE . '/dashboard/' . strtolower($_SESSION['role']) . '.php');
     exit;
 }
 
@@ -28,12 +27,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['name']    = $user['Name'];
             $_SESSION['role']    = $user['Role'];
 
-            // Role-based redirect
             $redirect = match($user['Role']) {
-                'Mangaka' => '/dashboard/mangaka.php',
-                'Studio'  => '/dashboard/studio.php',
-                'Admin'   => '/dashboard/admin.php',
-                default   => '/index.php',
+                'Mangaka' => BASE . '/dashboard/mangaka.php',
+                'Studio'  => BASE . '/dashboard/studio.php',
+                'Admin'   => BASE . '/dashboard/admin.php',
+                default   => BASE . '/index.php',
             };
             header("Location: $redirect");
             exit;
@@ -48,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Login — MangaPitch</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE ?>/assets/css/style.css">
 </head>
 <body>
 <div class="auth-container">
@@ -62,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <label>Password<input type="password" name="password" required></label>
         <button type="submit">Login</button>
     </form>
-    <p>No account? <a href="register.php">Register</a></p>
+    <p>No account? <a href="<?= BASE ?>/auth/register.php">Register</a></p>
 </div>
 </body>
 </html>

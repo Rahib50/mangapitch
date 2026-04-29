@@ -25,14 +25,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $pdo->beginTransaction();
 
-            // Insert into Users
             $stmt = $pdo->prepare(
                 "INSERT INTO Users (Name, Email, Password, Role) VALUES (?, ?, ?, ?)"
             );
             $stmt->execute([$name, $email, $hash, $role]);
             $userId = $pdo->lastInsertId();
 
-            // Insert into subtype table
             if ($role === 'Mangaka') {
                 $portfolio = trim($_POST['portfolio_link'] ?? '');
                 $pdo->prepare("INSERT INTO Mangaka (UserID, PortfolioLink) VALUES (?, ?)")
@@ -45,12 +43,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $pdo->commit();
 
-            // Auto-login after registration
             $_SESSION['user_id'] = $userId;
             $_SESSION['name']    = $name;
             $_SESSION['role']    = $role;
 
-            header('Location: /dashboard/' . strtolower($role) . '.php');
+            header('Location: ' . BASE . '/dashboard/' . strtolower($role) . '.php');
             exit;
 
         } catch (PDOException $e) {
@@ -67,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Register — MangaPitch</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE ?>/assets/css/style.css">
 </head>
 <body>
 <div class="auth-container">
@@ -89,19 +86,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </select>
         </label>
 
-        <!-- Mangaka-only field -->
         <div id="mangakaFields" style="display:none">
             <label>Portfolio Link<input type="url" name="portfolio_link"></label>
         </div>
 
-        <!-- Studio-only field -->
         <div id="studioFields" style="display:none">
             <label>Registration Number<input type="text" name="registration_number"></label>
         </div>
 
         <button type="submit">Register</button>
     </form>
-    <p>Already have an account? <a href="login.php">Login</a></p>
+    <p>Already have an account? <a href="<?= BASE ?>/auth/login.php">Login</a></p>
 </div>
 
 <script>
