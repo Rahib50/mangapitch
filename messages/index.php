@@ -154,7 +154,7 @@ if ($withID) {
                                 <?= nl2br(htmlspecialchars($msg['MessageText'])) ?>
                             </div>
                             <span class="bubble-time">
-                                <?= date('M j, g:i a', strtotime($msg['Timestamp'])) ?>
+                                <?= date('d M Y, g:i a', strtotime($msg['Timestamp'])) ?>
                             </span>
                             <?php if ($mine): ?>
                                 <form method="POST" style="margin:0">
