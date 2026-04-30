@@ -1,31 +1,111 @@
 <?php
-declare(strict_types=1);
-require_once __DIR__ . '/../includes/auth_guard.php';
-$pageTitle = 'Send Message';
-require_once __DIR__ . '/../includes/header.php';
+require_once '../config/db.php';
+require_once '../includes/auth_guard.php';
+requireLogin();
+
+if (session_status() === PHP_SESSION_NONE) session_start();
+
+$pdo     = getPDO();
+$userID  = $_SESSION['user_id'];
+$role    = $_SESSION['role'];
+$error   = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Placeholder: insert into `Messages` (SenderID from session)
-    header('Location: /messages/index.php');
-    exit;
+    $receiverID  = (int)($_POST['receiver_id']  ?? 0);
+    $messageText = trim($_POST['message_text']  ?? '');
+    $redirectTo  = $_POST['redirect_to'] ?? BASE . '/messages/index.php';
+
+    if (!$receiverID || !$messageText) {
+        $error = 'Recipient and message are required.';
+    } elseif ($receiverID === $userID) {
+        $error = 'You cannot message yourself.';
+    } else {
+        $rStmt = $pdo->prepare("SELECT UserID FROM Users WHERE UserID = ?");
+        $rStmt->execute([$receiverID]);
+
+        if (!$rStmt->fetch()) {
+            $error = 'Recipient not found.';
+        } else {
+            $pdo->prepare("
+                INSERT INTO Messages (SenderID, ReceiverID, MessageText)
+                VALUES (?, ?, ?)
+            ")->execute([$userID, $receiverID, $messageText]);
+
+            header('Location: ' . $redirectTo);
+            exit;
+        }
+    }
 }
+
+if ($role === 'Admin') {
+    $rStmt = $pdo->prepare("
+        SELECT UserID, Name, Role FROM Users
+        WHERE UserID <> ?
+        ORDER BY Role, Name
+    ");
+    $rStmt->execute([$userID]);
+} elseif ($role === 'Studio') {
+    $rStmt = $pdo->prepare("
+        SELECT u.UserID, u.Name, u.Role FROM Users u
+        WHERE u.Role = 'Mangaka'
+        ORDER BY u.Name
+    ");
+    $rStmt->execute();
+} else {
+    $rStmt = $pdo->prepare("
+        SELECT DISTINCT u.UserID, u.Name, u.Role FROM Users u
+        JOIN Bids b  ON b.StudioID = u.UserID
+        JOIN Manga m ON m.MangaID  = b.MangaID
+        WHERE m.MangakaID = ?
+        ORDER BY u.Name
+    ");
+    $rStmt->execute([$userID]);
+}
+$recipients = $rStmt->fetchAll();
+
+$prefillID = isset($_GET['to']) ? (int)$_GET['to'] : null;
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>New Message — MangaPitch</title>
+    <link rel="stylesheet" href="<?= BASE ?>/assets/css/style.css">
+</head>
+<body>
+<?php require_once '../includes/header.php'; ?>
+<main class="container">
+    <h2>New Message</h2>
 
-<div class="card">
-  <h2 style="margin-top:0">Send Message</h2>
-  <form method="post">
-    <label>
-      Receiver user id
-      <input name="receiver_id" type="number" min="1" required />
-    </label>
-    <div style="height: 12px"></div>
-    <label>
-      Message
-      <textarea name="message" rows="4" required></textarea>
-    </label>
-    <div style="height: 12px"></div>
-    <button type="submit">Send</button>
-  </form>
-</div>
+    <?php if ($error): ?>
+        <p class="alert alert-error"><?= htmlspecialchars($error) ?></p>
+    <?php endif; ?>
 
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+    <form method="POST">
+        <input type="hidden" name="redirect_to" value="<?= BASE ?>/messages/index.php">
+
+        <label>To
+            <select name="receiver_id" required>
+                <option value="">-- Select recipient --</option>
+                <?php foreach ($recipients as $r): ?>
+                    <option value="<?= $r['UserID'] ?>"
+                        <?= $prefillID === $r['UserID'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($r['Name']) ?>
+                        (<?= htmlspecialchars($r['Role']) ?>)
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </label>
+
+        <label>Message
+            <textarea name="message_text" rows="5"
+                      placeholder="Write your message…" required></textarea>
+        </label>
+
+        <button type="submit" class="btn">Send Message</button>
+        <a href="<?= BASE ?>/messages/index.php" class="btn btn-secondary">Cancel</a>
+    </form>
+</main>
+<?php require_once '../includes/footer.php'; ?>
+</body>
+</html>

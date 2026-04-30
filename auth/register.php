@@ -1,39 +1,112 @@
 <?php
-declare(strict_types=1);
-require_once __DIR__ . '/../includes/header.php';
+require_once '../config/db.php';
+if (session_status() === PHP_SESSION_NONE) session_start();
 
-$pageTitle = 'Register';
+$error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Placeholder register: replace with INSERT into Users (+ role tables)
-    $_SESSION['user'] = [
-        'id' => 1,
-        'name' => trim((string)($_POST['name'] ?? 'User')),
-        'role' => ($_POST['role'] ?? 'mangaka') === 'studio' ? 'studio' : 'mangaka',
-    ];
-    header('Location: /index.php');
-    exit;
+    $name     = trim($_POST['name']     ?? '');
+    $email    = trim($_POST['email']    ?? '');
+    $password =      $_POST['password'] ?? '';
+    $role     =      $_POST['role']     ?? '';
+
+    $validRoles = ['Mangaka', 'Studio'];
+
+    if (!$name || !$email || !$password || !in_array($role, $validRoles, true)) {
+        $error = 'All fields are required and role must be Mangaka or Studio.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Invalid email address.';
+    } elseif (strlen($password) < 8) {
+        $error = 'Password must be at least 8 characters.';
+    } else {
+        $pdo  = getPDO();
+        $hash = password_hash($password, PASSWORD_BCRYPT);
+
+        try {
+            $pdo->beginTransaction();
+
+            $stmt = $pdo->prepare(
+                "INSERT INTO Users (Name, Email, Password, Role) VALUES (?, ?, ?, ?)"
+            );
+            $stmt->execute([$name, $email, $hash, $role]);
+            $userId = $pdo->lastInsertId();
+
+            if ($role === 'Mangaka') {
+                $portfolio = trim($_POST['portfolio_link'] ?? '');
+                $pdo->prepare("INSERT INTO Mangaka (UserID, PortfolioLink) VALUES (?, ?)")
+                    ->execute([$userId, $portfolio ?: null]);
+            } elseif ($role === 'Studio') {
+                $regNum = trim($_POST['registration_number'] ?? '');
+                $pdo->prepare("INSERT INTO Studio (UserID, RegistrationNumber) VALUES (?, ?)")
+                    ->execute([$userId, $regNum ?: null]);
+            }
+
+            $pdo->commit();
+
+            $_SESSION['user_id'] = $userId;
+            $_SESSION['name']    = $name;
+            $_SESSION['role']    = $role;
+
+            header('Location: ' . BASE . '/dashboard/' . strtolower($role) . '.php');
+            exit;
+
+        } catch (PDOException $e) {
+            $pdo->rollBack();
+            $error = str_contains($e->getMessage(), 'Duplicate')
+                ? 'Email already registered.'
+                : 'Registration failed. Please try again.';
+        }
+    }
 }
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register — MangaPitch</title>
+    <link rel="stylesheet" href="<?= BASE ?>/assets/css/style.css">
+</head>
+<body>
+<div class="auth-container">
+    <h2>Create Account</h2>
+    <?php if ($error): ?>
+        <p class="error"><?= htmlspecialchars($error) ?></p>
+    <?php endif; ?>
 
-<div class="card">
-  <h2>Register</h2>
-  <form method="post">
-    <label>
-      Name
-      <input name="name" required />
-    </label>
-    <div style="height: 12px"></div>
-    <label>
-      Role
-      <select name="role">
-        <option value="mangaka">Mangaka</option>
-        <option value="studio">Studio</option>
-      </select>
-    </label>
-    <div style="height: 12px"></div>
-    <button type="submit">Create account</button>
-  </form>
+    <form method="POST">
+        <label>Name<input type="text" name="name" required></label>
+        <label>Email<input type="email" name="email" required></label>
+        <label>Password<input type="password" name="password" required minlength="8"></label>
+
+        <label>Role
+            <select name="role" id="roleSelect" required>
+                <option value="">-- Select --</option>
+                <option value="Mangaka">Mangaka</option>
+                <option value="Studio">Studio</option>
+            </select>
+        </label>
+
+        <div id="mangakaFields" style="display:none">
+            <label>Portfolio Link<input type="url" name="portfolio_link"></label>
+        </div>
+
+        <div id="studioFields" style="display:none">
+            <label>Registration Number<input type="text" name="registration_number"></label>
+        </div>
+
+        <button type="submit" class="btn">Register</button>
+    </form>
+    <p>Already have an account? <a href="<?= BASE ?>/auth/login.php">Login</a></p>
 </div>
 
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<script>
+    const roleSelect = document.getElementById('roleSelect');
+    roleSelect.addEventListener('change', function () {
+        document.getElementById('mangakaFields').style.display =
+            this.value === 'Mangaka' ? 'block' : 'none';
+        document.getElementById('studioFields').style.display =
+            this.value === 'Studio' ? 'block' : 'none';
+    });
+</script>
+</body>
+</html>

@@ -1,8 +1,10 @@
-    <div style="height: 24px"></div>
-    <div class="card">
-      <small>&copy; <span data-current-year></span> MangaPitch</small>
+<?php
+/* ============================================================
+   includes/footer.php
+   ============================================================ */
+?>
+<footer class="site-footer">
+    <div class="footer-inner">
+        <p>&copy; <?= date('Y') ?> MangaPitch. All rights reserved.</p>
     </div>
-  </div>
-  <script src="/assets/js/main.js"></script>
-</body>
-</html>
+</footer>
