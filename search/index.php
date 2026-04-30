@@ -1,10 +1,4 @@
 <?php
-/* ============================================================
-   search/index.php
-   — All logged-in roles can search
-   — Filter by genre, sort by views or volumes sold
-   — Studios see bid button, Mangakas see their own works flagged
-   ============================================================ */
 require_once '../config/db.php';
 require_once '../includes/auth_guard.php';
 requireLogin();
@@ -15,17 +9,14 @@ $pdo    = getPDO();
 $userID = $_SESSION['user_id'];
 $role   = $_SESSION['role'];
 
-// Inputs
-$query   = trim($_GET['q']       ?? '');
-$genreID = (int)($_GET['genre']  ?? 0);
-$sortBy  = $_GET['sort']         ?? 'views';
+$query   = trim($_GET['q']      ?? '');
+$genreID = (int)($_GET['genre'] ?? 0);
+$sortBy  = $_GET['sort']        ?? 'views';
 $validSort = ['views' => 'a.TotalViews', 'volumes' => 'a.VolumesSold', 'date' => 'm.PublishDate'];
 $orderCol  = $validSort[$sortBy] ?? 'a.TotalViews';
 
-// Fetch genres for filter dropdown
 $genres = $pdo->query("SELECT GenreID, GenreName FROM Genre ORDER BY GenreName")->fetchAll();
 
-// Build dynamic search query
 $params = [];
 $sql = "
     SELECT DISTINCT m.MangaID, m.Title, m.Synopsis, m.PublishDate,
@@ -49,9 +40,7 @@ if ($query) {
 }
 
 if ($genreID) {
-    $sql .= " AND m.MangaID IN (
-        SELECT MangaID FROM Manga_Genre_Map WHERE GenreID = ?
-    )";
+    $sql .= " AND m.MangaID IN (SELECT MangaID FROM Manga_Genre_Map WHERE GenreID = ?)";
     $params[] = $genreID;
 }
 
@@ -66,7 +55,7 @@ $results = $stmt->fetchAll();
 <head>
     <meta charset="UTF-8">
     <title>Search — MangaPitch</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE ?>/assets/css/style.css">
 </head>
 <body>
 <?php require_once '../includes/header.php'; ?>
@@ -106,14 +95,12 @@ $results = $stmt->fetchAll();
                 <div class="manga-card">
                     <div class="manga-card-body">
                         <h3>
-                            <a href="/manga/view.php?id=<?= $m['MangaID'] ?>">
+                            <a href="<?= BASE ?>/manga/view.php?id=<?= $m['MangaID'] ?>">
                                 <?= htmlspecialchars($m['Title']) ?>
                             </a>
                         </h3>
                         <p class="manga-author">by <?= htmlspecialchars($m['MangakaName']) ?></p>
-                        <p class="manga-genres">
-                            <?= htmlspecialchars($m['Genres'] ?? '—') ?>
-                        </p>
+                        <p class="manga-genres"><?= htmlspecialchars($m['Genres'] ?? '—') ?></p>
                         <p class="manga-synopsis-short">
                             <?= htmlspecialchars(mb_substr($m['Synopsis'] ?? '', 0, 120)) ?>…
                         </p>
@@ -122,7 +109,7 @@ $results = $stmt->fetchAll();
                         <span>👁 <?= number_format($m['TotalViews'] ?? 0) ?></span>
                         <span>📦 <?= number_format($m['VolumesSold'] ?? 0) ?></span>
                         <?php if ($role === 'Studio'): ?>
-                            <a href="/bids/submit.php?manga_id=<?= $m['MangaID'] ?>"
+                            <a href="<?= BASE ?>/bids/submit.php?manga_id=<?= $m['MangaID'] ?>"
                                class="btn btn-sm">Bid</a>
                         <?php endif; ?>
                     </div>

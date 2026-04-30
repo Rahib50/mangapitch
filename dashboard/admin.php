@@ -1,7 +1,5 @@
+
 <?php
-/* ============================================================
-   dashboard/admin.php
-   ============================================================ */
 require_once '../config/db.php';
 require_once '../includes/auth_guard.php';
 requireRole('Admin');
@@ -10,26 +8,23 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
 $pdo = getPDO();
 
-// Platform stats
 $stats = $pdo->query("
     SELECT
         (SELECT COUNT(*) FROM Users WHERE Role = 'Mangaka') AS Mangakas,
         (SELECT COUNT(*) FROM Users WHERE Role = 'Studio')  AS Studios,
         (SELECT COUNT(*) FROM Manga)                        AS Mangas,
         (SELECT COUNT(*) FROM Bids)                         AS Bids,
-        (SELECT COUNT(*) FROM Bids   WHERE Status = 'Pending')  AS PendingBids,
+        (SELECT COUNT(*) FROM Bids WHERE Status = 'Pending') AS PendingBids,
         (SELECT COUNT(*) FROM Contracts)                    AS Contracts,
         (SELECT SUM(TotalViews)  FROM Analytics)            AS TotalViews,
         (SELECT SUM(VolumesSold) FROM Analytics)            AS TotalVolumes
 ")->fetch();
 
-// Recent users
 $users = $pdo->query("
     SELECT UserID, Name, Email, Role, CreatedAt
     FROM Users ORDER BY CreatedAt DESC LIMIT 8
 ")->fetchAll();
 
-// Pending bids
 $pendingBids = $pdo->query("
     SELECT b.BidID, b.BidAmount, b.CreatedAt,
            m.Title, s.Name AS StudioName, mk.Name AS MangakaName
@@ -47,14 +42,13 @@ $pendingBids = $pdo->query("
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard — MangaPitch</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE ?>/assets/css/style.css">
 </head>
 <body>
 <?php require_once '../includes/header.php'; ?>
 <main class="container">
     <h2>Admin Dashboard</h2>
 
-    <!-- Platform stats -->
     <div class="analytics-summary">
         <div class="stat"><span class="stat-value"><?= $stats['Mangakas'] ?></span><span class="stat-label">Mangakas</span></div>
         <div class="stat"><span class="stat-value"><?= $stats['Studios'] ?></span><span class="stat-label">Studios</span></div>
@@ -66,15 +60,13 @@ $pendingBids = $pdo->query("
         <div class="stat"><span class="stat-value"><?= number_format($stats['TotalVolumes']) ?></span><span class="stat-label">Volumes Sold</span></div>
     </div>
 
-    <!-- Quick links -->
     <div class="admin-links">
-        <a href="/analytics/index.php"  class="btn">Platform Analytics</a>
-        <a href="/contracts/index.php"  class="btn">Manage Contracts</a>
-        <a href="/bids/index.php"       class="btn">All Bids</a>
-        <a href="/messages/index.php"   class="btn">Messages</a>
+        <a href="<?= BASE ?>/analytics/index.php" class="btn">Platform Analytics</a>
+        <a href="<?= BASE ?>/contracts/index.php" class="btn">Manage Contracts</a>
+        <a href="<?= BASE ?>/bids/index.php"      class="btn">All Bids</a>
+        <a href="<?= BASE ?>/messages/index.php"  class="btn">Messages</a>
     </div>
 
-    <!-- Recent users -->
     <h3>Recent Users</h3>
     <table class="data-table">
         <thead>
@@ -92,7 +84,6 @@ $pendingBids = $pdo->query("
         </tbody>
     </table>
 
-    <!-- Pending bids -->
     <h3>Pending Bids</h3>
     <?php if (empty($pendingBids)): ?>
         <p class="muted">No pending bids.</p>

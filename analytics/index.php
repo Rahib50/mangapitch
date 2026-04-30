@@ -1,10 +1,4 @@
 <?php
-/* ============================================================
-   analytics/index.php
-   — Mangaka: sees analytics for their own manga only
-   — Studio : sees analytics for manga they have bid on
-   — Admin  : sees all analytics platform-wide
-   ============================================================ */
 require_once '../config/db.php';
 require_once '../includes/auth_guard.php';
 requireLogin();
@@ -47,7 +41,6 @@ if ($role === 'Admin') {
     $stmt->execute([$userID]);
 
 } else {
-    // Studio: only manga they have placed bids on
     $stmt = $pdo->prepare("
         SELECT m.MangaID, m.Title, m.PublishDate,
                u.Name AS MangakaName,
@@ -58,9 +51,7 @@ if ($role === 'Admin') {
         JOIN Users u ON u.UserID  = m.MangakaID
         LEFT JOIN Manga_Genre_Map mgm ON mgm.MangaID = m.MangaID
         LEFT JOIN Genre g ON g.GenreID = mgm.GenreID
-        WHERE m.MangaID IN (
-            SELECT MangaID FROM Bids WHERE StudioID = ?
-        )
+        WHERE m.MangaID IN (SELECT MangaID FROM Bids WHERE StudioID = ?)
         GROUP BY a.AnalyticsID
         ORDER BY a.TotalViews DESC
     ");
@@ -69,7 +60,6 @@ if ($role === 'Admin') {
 
 $rows = $stmt->fetchAll();
 
-// Platform totals (Admin only)
 $totals = null;
 if ($role === 'Admin') {
     $totals = $pdo->query("
@@ -83,14 +73,13 @@ if ($role === 'Admin') {
 <head>
     <meta charset="UTF-8">
     <title>Analytics — MangaPitch</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE ?>/assets/css/style.css">
 </head>
 <body>
 <?php require_once '../includes/header.php'; ?>
 <main class="container">
     <h2>Analytics</h2>
 
-    <!-- Admin platform summary -->
     <?php if ($role === 'Admin' && $totals): ?>
         <div class="analytics-summary">
             <div class="stat">
@@ -111,9 +100,7 @@ if ($role === 'Admin') {
             <thead>
                 <tr>
                     <th>Manga</th>
-                    <?php if ($role !== 'Mangaka'): ?>
-                        <th>Mangaka</th>
-                    <?php endif; ?>
+                    <?php if ($role !== 'Mangaka'): ?><th>Mangaka</th><?php endif; ?>
                     <th>Genres</th>
                     <th>Publish Date</th>
                     <th>Total Views</th>
@@ -124,7 +111,7 @@ if ($role === 'Admin') {
             <?php foreach ($rows as $r): ?>
                 <tr>
                     <td>
-                        <a href="/manga/view.php?id=<?= $r['MangaID'] ?>">
+                        <a href="<?= BASE ?>/manga/view.php?id=<?= $r['MangaID'] ?>">
                             <?= htmlspecialchars($r['Title']) ?>
                         </a>
                     </td>
@@ -132,11 +119,7 @@ if ($role === 'Admin') {
                         <td><?= htmlspecialchars($r['MangakaName']) ?></td>
                     <?php endif; ?>
                     <td><?= htmlspecialchars($r['Genres'] ?? '—') ?></td>
-                    <td>
-                        <?= $r['PublishDate']
-                            ? date('M j, Y', strtotime($r['PublishDate']))
-                            : '—' ?>
-                    </td>
+                    <td><?= $r['PublishDate'] ? date('M j, Y', strtotime($r['PublishDate'])) : '—' ?></td>
                     <td><?= number_format($r['TotalViews']) ?></td>
                     <td><?= number_format($r['VolumesSold']) ?></td>
                 </tr>

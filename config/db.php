@@ -1,8 +1,14 @@
 <?php
-define('BASE', rtrim(dirname($_SERVER['SCRIPT_NAME']), '/'));
+// Calculates project root relative to document root — works on localhost and production
+define('BASE', rtrim(str_replace(
+    str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']),
+    '',
+    str_replace('\\', '/', dirname(__DIR__))
+), '/'));
+
 define('DB_HOST', 'localhost');
-define('DB_USER', 'root');       // XAMPP default
-define('DB_PASS', '');           // XAMPP default (empty)
+define('DB_USER', 'root');
+define('DB_PASS', '');
 define('DB_NAME', 'mangapitch');
 
 function getPDO(): PDO {
@@ -24,4 +30,3 @@ function getPDO(): PDO {
     }
     return $pdo;
 }
-

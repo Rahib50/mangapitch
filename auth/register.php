@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label>Registration Number<input type="text" name="registration_number"></label>
         </div>
 
-        <button type="submit">Register</button>
+        <button type="submit" class="btn">Register</button>
     </form>
     <p>Already have an account? <a href="<?= BASE ?>/auth/login.php">Login</a></p>
 </div>

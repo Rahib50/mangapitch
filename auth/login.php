@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form method="POST">
         <label>Email<input type="email" name="email" required></label>
         <label>Password<input type="password" name="password" required></label>
-        <button type="submit">Login</button>
+        <button type="submit" class="btn">Login</button>
     </form>
     <p>No account? <a href="<?= BASE ?>/auth/register.php">Register</a></p>
 </div>

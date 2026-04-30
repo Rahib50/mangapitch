@@ -1,7 +1,4 @@
 <?php
-/* ============================================================
-   dashboard/studio.php
-   ============================================================ */
 require_once '../config/db.php';
 require_once '../includes/auth_guard.php';
 requireRole('Studio');
@@ -11,7 +8,6 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 $pdo    = getPDO();
 $userID = $_SESSION['user_id'];
 
-// Active bids
 $bids = $pdo->prepare("
     SELECT b.BidID, b.BidAmount, b.Status, b.CreatedAt,
            m.Title, m.MangaID,
@@ -26,7 +22,6 @@ $bids = $pdo->prepare("
 $bids->execute([$userID, $userID]);
 $recentBids = $bids->fetchAll();
 
-// Active contracts
 $contracts = $pdo->prepare("
     SELECT c.ContractID, c.ProductStatus, c.SignedDate,
            m.Title
@@ -39,7 +34,6 @@ $contracts = $pdo->prepare("
 $contracts->execute([$userID]);
 $activeContracts = $contracts->fetchAll();
 
-// Message count
 $msgs = $pdo->prepare("SELECT COUNT(*) FROM Messages WHERE ReceiverID = ?");
 $msgs->execute([$userID]);
 $msgCount = $msgs->fetchColumn();
@@ -49,7 +43,7 @@ $msgCount = $msgs->fetchColumn();
 <head>
     <meta charset="UTF-8">
     <title>Studio Dashboard — MangaPitch</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE ?>/assets/css/style.css">
 </head>
 <body>
 <?php require_once '../includes/header.php'; ?>
@@ -73,11 +67,11 @@ $msgCount = $msgs->fetchColumn();
 
     <div class="section-header">
         <h3>Your Bids</h3>
-        <a href="/search/index.php" class="btn btn-sm">Browse Manga</a>
+        <a href="<?= BASE ?>/search/index.php" class="btn btn-sm">Browse Manga</a>
     </div>
 
     <?php if (empty($recentBids)): ?>
-        <p class="muted">No bids placed yet. <a href="/search/index.php">Browse manga to bid on.</a></p>
+        <p class="muted">No bids placed yet. <a href="<?= BASE ?>/search/index.php">Browse manga to bid on.</a></p>
     <?php else: ?>
         <table class="data-table">
             <thead>
@@ -86,7 +80,7 @@ $msgCount = $msgs->fetchColumn();
             <tbody>
             <?php foreach ($recentBids as $b): ?>
                 <tr>
-                    <td><a href="/manga/view.php?id=<?= $b['MangaID'] ?>"><?= htmlspecialchars($b['Title']) ?></a></td>
+                    <td><a href="<?= BASE ?>/manga/view.php?id=<?= $b['MangaID'] ?>"><?= htmlspecialchars($b['Title']) ?></a></td>
                     <td>$<?= number_format($b['BidAmount'], 2) ?></td>
                     <td><span class="badge badge-<?= strtolower($b['Status']) ?>"><?= $b['Status'] ?></span></td>
                     <td><?= $b['Competitors'] > 0 ? $b['Competitors'] . ' other bid(s)' : 'No competition' ?></td>

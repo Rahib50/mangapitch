@@ -1,10 +1,4 @@
 <?php
-/* ============================================================
-   messages/index.php
-   — Shows inbox: all conversations the logged-in user is part of
-   — Clicking a conversation opens the thread view
-   — Admin can see all conversations
-   ============================================================ */
 require_once '../config/db.php';
 require_once '../includes/auth_guard.php';
 requireLogin();
@@ -15,14 +9,24 @@ $pdo    = getPDO();
 $userID = $_SESSION['user_id'];
 $role   = $_SESSION['role'];
 
-// ── Fetch conversation threads ────────────────────────────────
-// Group by the other participant, show latest message preview
+// ── Delete single message ─────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_message_id'])) {
+    $deleteID = (int)$_POST['delete_message_id'];
+    // Only allow sender to delete
+    $pdo->prepare("DELETE FROM Messages WHERE MessageID = ? AND SenderID = ?")
+        ->execute([$deleteID, $userID]);
+    // Redirect back to same thread
+    $withID = (int)($_POST['with_id'] ?? 0);
+    header('Location: ' . BASE . '/messages/index.php' . ($withID ? '?with=' . $withID : ''));
+    exit;
+}
+
 if ($role === 'Admin') {
     $stmt = $pdo->prepare("
         SELECT
             LEAST(m.SenderID, m.ReceiverID)    AS UserA,
             GREATEST(m.SenderID, m.ReceiverID) AS UserB,
-            MAX(m.Timestamp)  AS LastTime,
+            MAX(m.Timestamp) AS LastTime,
             (SELECT MessageText FROM Messages
              WHERE (SenderID = LEAST(m.SenderID, m.ReceiverID)
                  OR ReceiverID = LEAST(m.SenderID, m.ReceiverID))
@@ -65,13 +69,11 @@ if ($role === 'Admin') {
 
 $threads = $stmt->fetchAll();
 
-// ── Thread view: load full conversation with one user ─────────
 $threadMessages = [];
 $otherUser      = null;
 $withID         = isset($_GET['with']) ? (int)$_GET['with'] : null;
 
 if ($withID) {
-    // Verify the other user exists
     $uStmt = $pdo->prepare("SELECT UserID, Name, Role FROM Users WHERE UserID = ?");
     $uStmt->execute([$withID]);
     $otherUser = $uStmt->fetch();
@@ -96,7 +98,7 @@ if ($withID) {
 <head>
     <meta charset="UTF-8">
     <title>Messages — MangaPitch</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE ?>/assets/css/style.css">
 </head>
 <body>
 <?php require_once '../includes/header.php'; ?>
@@ -104,10 +106,8 @@ if ($withID) {
     <h2>Messages</h2>
 
     <div class="message-layout">
-
-        <!-- ── Inbox sidebar ── -->
         <aside class="inbox-list">
-            <a href="send.php" class="btn btn-sm" style="margin-bottom:12px">+ New Message</a>
+            <a href="<?= BASE ?>/messages/send.php" class="btn btn-sm" style="margin-bottom:12px">+ New Message</a>
 
             <?php if (empty($threads)): ?>
                 <p class="muted">No conversations yet.</p>
@@ -131,14 +131,11 @@ if ($withID) {
                     <span class="inbox-preview">
                         <?= htmlspecialchars(mb_substr($t['Preview'], 0, 60)) ?>…
                     </span>
-                    <span class="inbox-time">
-                        <?= date('M j', strtotime($t['LastTime'])) ?>
-                    </span>
+                    <span class="inbox-time"><?= date('M j', strtotime($t['LastTime'])) ?></span>
                 </a>
             <?php endforeach; ?>
         </aside>
 
-        <!-- ── Thread panel ── -->
         <section class="thread-panel">
             <?php if (!$withID || !$otherUser): ?>
                 <p class="muted thread-placeholder">Select a conversation or start a new one.</p>
@@ -159,26 +156,32 @@ if ($withID) {
                             <span class="bubble-time">
                                 <?= date('M j, g:i a', strtotime($msg['Timestamp'])) ?>
                             </span>
+                            <?php if ($mine): ?>
+                                <form method="POST" style="margin:0">
+                                    <input type="hidden" name="delete_message_id" value="<?= $msg['MessageID'] ?>">
+                                    <input type="hidden" name="with_id" value="<?= $withID ?>">
+                                    <button type="submit" class="btn-delete"
+                                            onclick="return confirm('Delete this message?')">
+                                        🗑
+                                    </button>
+                                </form>
+                            <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
                 </div>
 
-                <!-- Quick reply form -->
-                <form method="POST" action="send.php" class="reply-form">
+                <form method="POST" action="<?= BASE ?>/messages/send.php" class="reply-form">
                     <input type="hidden" name="receiver_id" value="<?= $withID ?>">
-                    <input type="hidden" name="redirect_to" value="index.php?with=<?= $withID ?>">
-                    <textarea name="message_text" rows="3"
-                              placeholder="Write a message…" required></textarea>
+                    <input type="hidden" name="redirect_to" value="<?= BASE ?>/messages/index.php?with=<?= $withID ?>">
+                    <textarea name="message_text" rows="3" placeholder="Write a message…" required></textarea>
                     <button type="submit" class="btn">Send</button>
                 </form>
             <?php endif; ?>
         </section>
-
     </div>
 </main>
 
 <script>
-    // Auto-scroll thread to bottom
     const thread = document.getElementById('thread');
     if (thread) thread.scrollTop = thread.scrollHeight;
 </script>
@@ -186,5 +189,3 @@ if ($withID) {
 <?php require_once '../includes/footer.php'; ?>
 </body>
 </html>
-
-

@@ -1,9 +1,4 @@
 <?php
-/* ============================================================
-   manga/upload.php
-   — Mangaka only
-   — Upload a new manga title with synopsis, publish date, genres
-   ============================================================ */
 require_once '../config/db.php';
 require_once '../includes/auth_guard.php';
 requireRole('Mangaka');
@@ -15,7 +10,6 @@ $userID  = $_SESSION['user_id'];
 $error   = '';
 $success = '';
 
-// Fetch all genres for checkbox list
 $genres = $pdo->query("SELECT GenreID, GenreName FROM Genre ORDER BY GenreName")->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -34,7 +28,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $pdo->beginTransaction();
 
-            // Insert manga
             $pdo->prepare("
                 INSERT INTO Manga (MangakaID, Title, Synopsis, PublishDate)
                 VALUES (?, ?, ?, ?)
@@ -42,18 +35,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $mangaID = $pdo->lastInsertId();
 
-            // Insert genre mappings
-            $gStmt = $pdo->prepare("
-                INSERT INTO Manga_Genre_Map (MangaID, GenreID) VALUES (?, ?)
-            ");
+            $gStmt = $pdo->prepare("INSERT INTO Manga_Genre_Map (MangaID, GenreID) VALUES (?, ?)");
             foreach ($genreIDs as $gid) {
                 $gStmt->execute([$mangaID, (int)$gid]);
             }
 
-            // Create analytics row
             $pdo->prepare("
-                INSERT INTO Analytics (MangaID, TotalViews, VolumesSold)
-                VALUES (?, 0, 0)
+                INSERT INTO Analytics (MangaID, TotalViews, VolumesSold) VALUES (?, 0, 0)
             ")->execute([$mangaID]);
 
             $pdo->commit();
@@ -71,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Upload Manga — MangaPitch</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE ?>/assets/css/style.css">
 </head>
 <body>
 <?php require_once '../includes/header.php'; ?>
@@ -100,8 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="genre-grid">
                 <?php foreach ($genres as $g): ?>
                     <label class="checkbox-label">
-                        <input type="checkbox" name="genres[]"
-                               value="<?= $g['GenreID'] ?>">
+                        <input type="checkbox" name="genres[]" value="<?= $g['GenreID'] ?>">
                         <?= htmlspecialchars($g['GenreName']) ?>
                     </label>
                 <?php endforeach; ?>
@@ -109,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </fieldset>
 
         <button type="submit" class="btn">Upload Manga</button>
-        <a href="/dashboard/mangaka.php" class="btn btn-secondary">Cancel</a>
+        <a href="<?= BASE ?>/dashboard/mangaka.php" class="btn btn-secondary">Cancel</a>
     </form>
 </main>
 <?php require_once '../includes/footer.php'; ?>

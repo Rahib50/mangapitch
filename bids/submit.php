@@ -1,10 +1,4 @@
 <?php
-/* ============================================================
-   bids/submit.php
-   — Studio only
-   — New bid: inserts if no existing bid on this manga
-   — Raise bid: only allowed if new amount > current amount
-   ============================================================ */
 require_once '../config/db.php';
 require_once '../includes/auth_guard.php';
 requireRole('Studio');
@@ -16,17 +10,14 @@ $userID  = $_SESSION['user_id'];
 $error   = '';
 $success = '';
 
-// Pre-fill manga if coming from a manga page or raise-bid link
 $prefillMangaID = isset($_GET['manga_id']) ? (int)$_GET['manga_id'] : null;
 
-// Fetch all manga available for bidding (no accepted bid from this studio yet)
 $mangaStmt = $pdo->prepare("
     SELECT m.MangaID, m.Title, u.Name AS MangakaName
     FROM Manga m
     JOIN Users u ON u.UserID = m.MangakaID
     WHERE m.MangaID NOT IN (
-        SELECT MangaID FROM Bids
-        WHERE StudioID = ? AND Status = 'Accepted'
+        SELECT MangaID FROM Bids WHERE StudioID = ? AND Status = 'Accepted'
     )
     ORDER BY m.Title
 ");
@@ -34,13 +25,12 @@ $mangaStmt->execute([$userID]);
 $availableManga = $mangaStmt->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $mangaID   = (int)($_POST['manga_id']   ?? 0);
+    $mangaID   = (int)($_POST['manga_id']    ?? 0);
     $bidAmount = (float)($_POST['bid_amount'] ?? 0);
 
     if (!$mangaID || $bidAmount <= 0) {
         $error = 'Please select a manga and enter a valid bid amount.';
     } else {
-        // Check if studio already has a bid on this manga
         $existing = $pdo->prepare("
             SELECT BidID, BidAmount, Status FROM Bids
             WHERE MangaID = ? AND StudioID = ?
@@ -49,7 +39,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $currentBid = $existing->fetch();
 
         if ($currentBid) {
-            // ── Raise bid logic ───────────────────────────────
             if ($currentBid['Status'] !== 'Pending') {
                 $error = 'You can only raise a bid that is still pending.';
             } elseif ($bidAmount <= $currentBid['BidAmount']) {
@@ -58,34 +47,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     number_format($currentBid['BidAmount'], 2)
                 );
             } else {
-                $pdo->prepare("
-                    UPDATE Bids SET BidAmount = ? WHERE BidID = ?
-                ")->execute([$bidAmount, $currentBid['BidID']]);
-                $success = sprintf(
-                    'Bid raised to $%s successfully.',
-                    number_format($bidAmount, 2)
-                );
+                $pdo->prepare("UPDATE Bids SET BidAmount = ? WHERE BidID = ?")
+                    ->execute([$bidAmount, $currentBid['BidID']]);
+                $success = sprintf('Bid raised to $%s successfully.', number_format($bidAmount, 2));
             }
         } else {
-            // ── New bid ───────────────────────────────────────
             $pdo->prepare("
-                INSERT INTO Bids (MangaID, StudioID, BidAmount, Status)
-                VALUES (?, ?, ?, 'Pending')
+                INSERT INTO Bids (MangaID, StudioID, BidAmount, Status) VALUES (?, ?, ?, 'Pending')
             ")->execute([$mangaID, $userID, $bidAmount]);
-            $success = sprintf(
-                'Bid of $%s placed successfully.',
-                number_format($bidAmount, 2)
-            );
+            $success = sprintf('Bid of $%s placed successfully.', number_format($bidAmount, 2));
         }
     }
 }
 
-// Fetch studio's current bid on pre-filled manga (for raise-bid hint)
 $currentBidAmount = null;
 if ($prefillMangaID) {
     $check = $pdo->prepare("
-        SELECT BidAmount FROM Bids
-        WHERE MangaID = ? AND StudioID = ? AND Status = 'Pending'
+        SELECT BidAmount FROM Bids WHERE MangaID = ? AND StudioID = ? AND Status = 'Pending'
     ");
     $check->execute([$prefillMangaID, $userID]);
     $row = $check->fetch();
@@ -97,7 +75,7 @@ if ($prefillMangaID) {
 <head>
     <meta charset="UTF-8">
     <title>Place Bid — MangaPitch</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE ?>/assets/css/style.css">
 </head>
 <body>
 <?php require_once '../includes/header.php'; ?>
@@ -137,7 +115,7 @@ if ($prefillMangaID) {
         <p class="hint">Your bid is confidential. Other studios cannot see your offer.</p>
 
         <button type="submit"><?= $currentBidAmount ? 'Raise Bid' : 'Submit Bid' ?></button>
-        <a href="index.php" class="btn btn-secondary">Cancel</a>
+        <a href="<?= BASE ?>/bids/index.php" class="btn btn-secondary">Cancel</a>
     </form>
 </main>
 <?php require_once '../includes/footer.php'; ?>

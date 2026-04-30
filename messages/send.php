@@ -1,10 +1,4 @@
 <?php
-/* ============================================================
-   messages/send.php
-   — Handles both: new message (GET shows form) and
-     quick-reply POST from thread view
-   — Prevents a user messaging themselves
-   ============================================================ */
 require_once '../config/db.php';
 require_once '../includes/auth_guard.php';
 requireLogin();
@@ -19,14 +13,13 @@ $error   = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $receiverID  = (int)($_POST['receiver_id']  ?? 0);
     $messageText = trim($_POST['message_text']  ?? '');
-    $redirectTo  = $_POST['redirect_to'] ?? 'index.php';
+    $redirectTo  = $_POST['redirect_to'] ?? BASE . '/messages/index.php';
 
     if (!$receiverID || !$messageText) {
         $error = 'Recipient and message are required.';
     } elseif ($receiverID === $userID) {
         $error = 'You cannot message yourself.';
     } else {
-        // Verify receiver exists
         $rStmt = $pdo->prepare("SELECT UserID FROM Users WHERE UserID = ?");
         $rStmt->execute([$receiverID]);
 
@@ -44,9 +37,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ── New message form: fetch eligible recipients ───────────────
-// Studios can message Mangakas, Mangakas can message Studios
-// Admin can message anyone
 if ($role === 'Admin') {
     $rStmt = $pdo->prepare("
         SELECT UserID, Name, Role FROM Users
@@ -62,11 +52,10 @@ if ($role === 'Admin') {
     ");
     $rStmt->execute();
 } else {
-    // Mangaka can reply to studios who have bid on their manga
     $rStmt = $pdo->prepare("
         SELECT DISTINCT u.UserID, u.Name, u.Role FROM Users u
-        JOIN Bids b ON b.StudioID = u.UserID
-        JOIN Manga m ON m.MangaID = b.MangaID
+        JOIN Bids b  ON b.StudioID = u.UserID
+        JOIN Manga m ON m.MangaID  = b.MangaID
         WHERE m.MangakaID = ?
         ORDER BY u.Name
     ");
@@ -81,7 +70,7 @@ $prefillID = isset($_GET['to']) ? (int)$_GET['to'] : null;
 <head>
     <meta charset="UTF-8">
     <title>New Message — MangaPitch</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE ?>/assets/css/style.css">
 </head>
 <body>
 <?php require_once '../includes/header.php'; ?>
@@ -93,7 +82,7 @@ $prefillID = isset($_GET['to']) ? (int)$_GET['to'] : null;
     <?php endif; ?>
 
     <form method="POST">
-        <input type="hidden" name="redirect_to" value="index.php">
+        <input type="hidden" name="redirect_to" value="<?= BASE ?>/messages/index.php">
 
         <label>To
             <select name="receiver_id" required>
@@ -114,7 +103,7 @@ $prefillID = isset($_GET['to']) ? (int)$_GET['to'] : null;
         </label>
 
         <button type="submit" class="btn">Send Message</button>
-        <a href="index.php" class="btn btn-secondary">Cancel</a>
+        <a href="<?= BASE ?>/messages/index.php" class="btn btn-secondary">Cancel</a>
     </form>
 </main>
 <?php require_once '../includes/footer.php'; ?>
