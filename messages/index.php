@@ -9,6 +9,18 @@ $pdo    = getPDO();
 $userID = $_SESSION['user_id'];
 $role   = $_SESSION['role'];
 
+// ── Delete single message ─────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_message_id'])) {
+    $deleteID = (int)$_POST['delete_message_id'];
+    // Only allow sender to delete
+    $pdo->prepare("DELETE FROM Messages WHERE MessageID = ? AND SenderID = ?")
+        ->execute([$deleteID, $userID]);
+    // Redirect back to same thread
+    $withID = (int)($_POST['with_id'] ?? 0);
+    header('Location: ' . BASE . '/messages/index.php' . ($withID ? '?with=' . $withID : ''));
+    exit;
+}
+
 if ($role === 'Admin') {
     $stmt = $pdo->prepare("
         SELECT
@@ -144,6 +156,16 @@ if ($withID) {
                             <span class="bubble-time">
                                 <?= date('M j, g:i a', strtotime($msg['Timestamp'])) ?>
                             </span>
+                            <?php if ($mine): ?>
+                                <form method="POST" style="margin:0">
+                                    <input type="hidden" name="delete_message_id" value="<?= $msg['MessageID'] ?>">
+                                    <input type="hidden" name="with_id" value="<?= $withID ?>">
+                                    <button type="submit" class="btn-delete"
+                                            onclick="return confirm('Delete this message?')">
+                                        🗑
+                                    </button>
+                                </form>
+                            <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
                 </div>
