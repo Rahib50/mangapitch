@@ -9,13 +9,13 @@ $pdo    = getPDO();
 $userID = $_SESSION['user_id'];
 $role   = $_SESSION['role'];
 
-// ── Delete single message ─────────────────────────────────────
+// Delete single message 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_message_id'])) {
     $deleteID = (int)$_POST['delete_message_id'];
-    // Only allow sender to delete
+
     $pdo->prepare("DELETE FROM Messages WHERE MessageID = ? AND SenderID = ?")
         ->execute([$deleteID, $userID]);
-    // Redirect back to same thread
+
     $withID = (int)($_POST['with_id'] ?? 0);
     header('Location: ' . BASE . '/messages/index.php' . ($withID ? '?with=' . $withID : ''));
     exit;
