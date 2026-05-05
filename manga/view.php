@@ -82,7 +82,6 @@ if ($role === 'Studio') {
                     <?php endforeach; ?>
                 </div>
 
-                //scrollable synopsis
                 <div class="manga-synopsis-wrap">
                     <p class="manga-synopsis">
                         <?= nl2br(htmlspecialchars($manga['Synopsis'] ?? 'No synopsis available.')) ?>
