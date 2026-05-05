@@ -1,5 +1,4 @@
-
-@import url('https://fonts.googleapis.com/css2?family=Indie+Flower&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rock+Salt&family=Inter:wght@400;500;600&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -44,7 +43,7 @@ a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 h1, h2, h3 {
-    font-family: 'Indie Flower', cursive;
+    font-family: 'Rock Salt', cursive;
     letter-spacing: 1.5px;
     line-height: 1.1;
     color: var(--charcoal);
@@ -56,6 +55,7 @@ h3 { font-size: 1.4rem; margin-bottom: .8rem; }
 
 .container { width: 100%; max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
 main { flex: 1; }
+
 
 .site-header {
     background: var(--charcoal);
@@ -75,6 +75,8 @@ main { flex: 1; }
     text-decoration: none;
     white-space: nowrap;
 }
+
+
 .site-logo span { color: var(--accent); }
 .site-nav { display: flex; gap: 1.4rem; flex: 1; }
 .site-nav a {
@@ -98,6 +100,7 @@ main { flex: 1; }
     color: rgba(255,255,255,0.45);
     font-size: .85rem;
 }
+
 
 .btn {
     display: inline-block;
@@ -133,6 +136,7 @@ main .btn-secondary:hover, .auth-container .btn-secondary:hover, .manga-actions 
 }
 .btn-sm  { padding: .3rem .8rem; font-size: .75rem; }
 .btn-lg  { padding: .75rem 2rem; font-size: 1rem; }
+
 
 .auth-container {
     max-width: 440px; margin: 3rem auto;
@@ -227,6 +231,7 @@ legend { padding: 0 .5rem; font-weight: 600; font-size: .8rem; color: var(--text
 .data-table tr:last-child td { border-bottom: none; }
 .data-table tr:hover td { background: var(--accent-light); }
 
+
 .analytics-summary {
     display: flex; flex-wrap: wrap; gap: 1rem;
     margin-bottom: 2rem;
@@ -247,7 +252,6 @@ legend { padding: 0 .5rem; font-weight: 600; font-size: .8rem; color: var(--text
     color: var(--accent);
 }
 .stat-label { font-size: .75rem; color: var(--text-muted); margin-top: .2rem; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
-
 
 .section-header {
     display: flex; align-items: center; justify-content: space-between;
@@ -294,13 +298,34 @@ legend { padding: 0 .5rem; font-weight: 600; font-size: .8rem; color: var(--text
 .manga-synopsis-short { font-size: .85rem; color: var(--text-muted); }
 
 
-.manga-detail { max-width: 760px; }
-.manga-detail-header {
-    margin-bottom: 1.2rem;
-    padding-left: 1rem;
-    border-left: 5px solid var(--accent);
+.manga-detail { max-width: 100%; }
+
+
+.manga-hero {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    margin-bottom: 2rem;
 }
-.genre-tags  { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .6rem; }
+.manga-hero .manga-cover {
+    flex-shrink: 0;
+    margin-bottom: 0;
+}
+.manga-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 340px;
+    border-left: 5px solid var(--accent);
+    padding-left: 1.2rem;
+}
+.manga-hero.no-cover .manga-info {
+    height: auto;
+    min-height: 200px;
+}
+.manga-info h2 { margin-bottom: .2rem; }
+.manga-author  { font-size: .95rem; color: var(--text-muted); margin-bottom: .6rem; font-weight: 600; }
+.genre-tags    { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .8rem; }
 .tag {
     background: var(--accent-light);
     border: 1.5px solid var(--accent);
@@ -312,7 +337,19 @@ legend { padding: 0 .5rem; font-weight: 600; font-size: .8rem; color: var(--text
     text-transform: uppercase;
     letter-spacing: .4px;
 }
-.manga-synopsis { margin-bottom: 1rem; line-height: 1.8; }
+.manga-synopsis-wrap {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: .4rem;
+    margin-bottom: .8rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+.manga-synopsis-wrap::-webkit-scrollbar { width: 4px; }
+.manga-synopsis-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.manga-synopsis { line-height: 1.8; font-size: .95rem; }
+.manga-publish  { font-size: .85rem; color: var(--text-muted); font-weight: 600; padding-top: .6rem; border-top: 1px solid var(--border); }
+
 .manga-actions  { display: flex; gap: .8rem; flex-wrap: wrap; margin-top: 1.5rem; }
 .analytics-strip {
     display: flex; gap: 1.5rem; margin: 1.2rem 0;
@@ -398,8 +435,80 @@ legend { padding: 0 .5rem; font-weight: 600; font-size: .8rem; color: var(--text
 }
 .bubble-wrap:hover .btn-delete { opacity: 1; }
 
-
 .admin-links { display: flex; flex-wrap: wrap; gap: .8rem; margin-bottom: 2rem; }
+
+
+.manga-cover {
+    margin-bottom: 1.5rem;
+    border: 6px solid var(--surface2);
+    border-radius: 12px;
+    overflow: hidden;
+    width: 240px;
+    height: 340px;
+    box-shadow: 4px 4px 0 var(--charcoal);
+    outline: 2px solid var(--border);
+}
+.manga-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 7px;
+}
+.manga-panels { margin: 1.5rem 0; }
+.panel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem; margin-top: .8rem;
+}
+.panel-item {
+    position: relative;
+    border: 6px solid var(--surface2);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 3px 3px 0 var(--charcoal);
+    outline: 2px solid var(--border);
+    width: 100%;
+    height: 200px;
+}
+.panel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 7px;
+}
+
+
+#lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.85);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+#lightbox.active { display: flex; }
+#lightbox-img {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 8px;
+    border: 4px solid var(--surface2);
+    box-shadow: 0 8px 40px rgba(0,0,0,.6);
+    cursor: default;
+}
+#lightbox-close {
+    position: absolute;
+    top: 1.2rem; right: 1.5rem;
+    color: #fff; font-size: 1.8rem;
+    cursor: pointer; font-weight: 700;
+    line-height: 1;
+}
+.panel-item { cursor: pointer; }
+.panel-item:hover img { opacity: .85; transition: opacity .2s; }
+
 
 .hero {
     display: flex; align-items: center; justify-content: center;

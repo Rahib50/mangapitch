@@ -1,14 +1,9 @@
--- ============================================================
--- seed.sql — MangaPitch Demo Data
--- Default password for ALL accounts: password
--- Import: phpMyAdmin → mangapitch → Import → seed.sql
--- ============================================================
 
 SET FOREIGN_KEY_CHECKS = 0;
 SET NAMES utf8mb4;
 USE mangapitch;
 
--- ─── USERS ────────────────────────────────────────────────────────────────────
+
 INSERT INTO Users (UserID, Name, Email, Password, Role) VALUES
 -- Mangakas
 (1,  'Hayao Miyazaki',   'miyazaki@ghibli.com',    '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Mangaka'),
@@ -20,7 +15,7 @@ INSERT INTO Users (UserID, Name, Email, Password, Role) VALUES
 (7,  'Koyoharu Gotouge', 'gotouge@mail.com',        '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Mangaka'),
 (8,  'Hiromu Arakawa',   'arakawa@mail.com',        '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Mangaka'),
 (9,  'Kohei Horikoshi',  'horikoshi@mail.com',      '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Mangaka'),
--- Studios (no change needed, already correct)
+-- Studios 
 (10, 'Studio Ghibli',    'contact@ghibli.jp',       '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Studio'),
 (11, 'MAPPA',            'contact@mappa.jp',        '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Studio'),
 (12, 'ufotable',         'contact@ufotable.jp',     '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Studio'),

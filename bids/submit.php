@@ -114,7 +114,7 @@ if ($prefillMangaID) {
 
         <p class="hint">Your bid is confidential. Other studios cannot see your offer.</p>
 
-        <button type="submit"><?= $currentBidAmount ? 'Raise Bid' : 'Submit Bid' ?></button>
+        <button type="submit" class="btn"><?= $currentBidAmount ? 'Raise Bid' : 'Submit Bid' ?></button>
         <a href="<?= BASE ?>/bids/index.php" class="btn btn-secondary">Cancel</a>
     </form>
 </main>

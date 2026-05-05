@@ -1,21 +1,12 @@
--- MangaPitch Database Schema (phpMyAdmin / XAMPP friendly)
--- How to use (phpMyAdmin):
--- 1) Open phpMyAdmin -> Import -> choose this file -> Go
-
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
 
 CREATE DATABASE IF NOT EXISTS `mangapitch`
   DEFAULT CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 USE `mangapitch`;
 
--- Core user table
+
 CREATE TABLE IF NOT EXISTS `Users` (
   `UserID` INT NOT NULL AUTO_INCREMENT,
   `Name` VARCHAR(100) NOT NULL,
@@ -27,7 +18,7 @@ CREATE TABLE IF NOT EXISTS `Users` (
   UNIQUE KEY `uq_users_email` (`Email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Role-specific tables (1:1 with Users)
+
 CREATE TABLE IF NOT EXISTS `Mangaka` (
   `UserID` INT NOT NULL,
   `PortfolioLink` VARCHAR(255) DEFAULT NULL,
@@ -55,7 +46,7 @@ CREATE TABLE IF NOT EXISTS `Admin` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Connections between users
+
 CREATE TABLE IF NOT EXISTS `Connections` (
   `UserID_A` INT NOT NULL,
   `UserID_B` INT NOT NULL,
@@ -69,13 +60,15 @@ CREATE TABLE IF NOT EXISTS `Connections` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Manga tables
+
 CREATE TABLE IF NOT EXISTS `Manga` (
   `MangaID` INT NOT NULL AUTO_INCREMENT,
   `MangakaID` INT NOT NULL,
   `Title` VARCHAR(200) NOT NULL,
   `Synopsis` TEXT DEFAULT NULL,
   `PublishDate` DATE DEFAULT NULL,
+  `CoverImage` VARCHAR(255) DEFAULT NULL,
+  `PanelImages` TEXT DEFAULT NULL,
   `CreatedAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`MangaID`),
   KEY `idx_manga_mangaka` (`MangakaID`),
@@ -116,7 +109,7 @@ CREATE TABLE IF NOT EXISTS `Analytics` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Bids / Contracts
+
 CREATE TABLE IF NOT EXISTS `Bids` (
   `BidID` INT NOT NULL AUTO_INCREMENT,
   `MangaID` INT NOT NULL,
@@ -147,7 +140,7 @@ CREATE TABLE IF NOT EXISTS `Contracts` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Messages
+
 CREATE TABLE IF NOT EXISTS `Messages` (
   `MessageID` INT NOT NULL AUTO_INCREMENT,
   `SenderID` INT NOT NULL,
@@ -165,13 +158,9 @@ CREATE TABLE IF NOT EXISTS `Messages` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Seed data
+
 INSERT INTO `Genre` (`GenreName`) VALUES
   ('Action'), ('Adventure'), ('Comedy'), ('Drama'),
   ('Fantasy'), ('Horror'), ('Romance'), ('Sci-Fi'),
   ('Slice of Life'), ('Thriller')
 ON DUPLICATE KEY UPDATE `GenreName` = VALUES(`GenreName`);
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

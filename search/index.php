@@ -49,6 +49,44 @@ $sql .= " GROUP BY m.MangaID ORDER BY $orderCol DESC";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $results = $stmt->fetchAll();
+
+//AJAX: return only results HTML and exit
+if (isset($_GET['ajax'])) {
+    $count = count($results);
+    $countText = $count . ' result' . ($count !== 1 ? 's' : '') . ' found';
+
+    if (empty($results)) {
+        echo json_encode([
+            'count' => $countText,
+            'html'  => '<p class="muted">No manga found matching your search.</p>'
+        ]);
+    } else {
+        $html = '<div class="manga-grid">';
+        foreach ($results as $m) {
+            $bid = $role === 'Studio'
+                ? '<a href="' . BASE . '/bids/submit.php?manga_id=' . $m['MangaID'] . '" class="btn btn-sm">Bid</a>'
+                : '';
+            $html .= '<div class="manga-card">
+                <div class="manga-card-body">
+                    <h3><a href="' . BASE . '/manga/view.php?id=' . $m['MangaID'] . '">'
+                        . htmlspecialchars($m['Title']) . '</a></h3>
+                    <p class="manga-author">by ' . htmlspecialchars($m['MangakaName']) . '</p>
+                    <p class="manga-genres">' . htmlspecialchars($m['Genres'] ?? '—') . '</p>
+                    <p class="manga-synopsis-short">'
+                        . htmlspecialchars(mb_substr($m['Synopsis'] ?? '', 0, 120)) . '…</p>
+                </div>
+                <div class="manga-card-footer">
+                    <span>👁 ' . number_format($m['TotalViews'] ?? 0) . '</span>
+                    <span>📦 ' . number_format($m['VolumesSold'] ?? 0) . '</span>
+                    ' . $bid . '
+                </div>
+            </div>';
+        }
+        $html .= '</div>';
+        echo json_encode(['count' => $countText, 'html' => $html]);
+    }
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -85,39 +123,73 @@ $results = $stmt->fetchAll();
         <button type="submit" class="btn">Search</button>
     </form>
 
-    <p class="result-count"><?= count($results) ?> result<?= count($results) !== 1 ? 's' : '' ?> found</p>
+    <p class="result-count" id="result-count">
+        <?= count($results) ?> result<?= count($results) !== 1 ? 's' : '' ?> found
+    </p>
 
-    <?php if (empty($results)): ?>
-        <p class="muted">No manga found matching your search.</p>
-    <?php else: ?>
-        <div class="manga-grid">
-            <?php foreach ($results as $m): ?>
-                <div class="manga-card">
-                    <div class="manga-card-body">
-                        <h3>
-                            <a href="<?= BASE ?>/manga/view.php?id=<?= $m['MangaID'] ?>">
-                                <?= htmlspecialchars($m['Title']) ?>
-                            </a>
-                        </h3>
-                        <p class="manga-author">by <?= htmlspecialchars($m['MangakaName']) ?></p>
-                        <p class="manga-genres"><?= htmlspecialchars($m['Genres'] ?? '—') ?></p>
-                        <p class="manga-synopsis-short">
-                            <?= htmlspecialchars(mb_substr($m['Synopsis'] ?? '', 0, 120)) ?>…
-                        </p>
+    <div id="search-results">
+        <?php if (empty($results)): ?>
+            <p class="muted">No manga found matching your search.</p>
+        <?php else: ?>
+            <div class="manga-grid">
+                <?php foreach ($results as $m): ?>
+                    <div class="manga-card">
+                        <div class="manga-card-body">
+                            <h3>
+                                <a href="<?= BASE ?>/manga/view.php?id=<?= $m['MangaID'] ?>">
+                                    <?= htmlspecialchars($m['Title']) ?>
+                                </a>
+                            </h3>
+                            <p class="manga-author">by <?= htmlspecialchars($m['MangakaName']) ?></p>
+                            <p class="manga-genres"><?= htmlspecialchars($m['Genres'] ?? '—') ?></p>
+                            <p class="manga-synopsis-short">
+                                <?= htmlspecialchars(mb_substr($m['Synopsis'] ?? '', 0, 120)) ?>…
+                            </p>
+                        </div>
+                        <div class="manga-card-footer">
+                            <span>👁 <?= number_format($m['TotalViews'] ?? 0) ?></span>
+                            <span>📦 <?= number_format($m['VolumesSold'] ?? 0) ?></span>
+                            <?php if ($role === 'Studio'): ?>
+                                <a href="<?= BASE ?>/bids/submit.php?manga_id=<?= $m['MangaID'] ?>"
+                                   class="btn btn-sm">Bid</a>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                    <div class="manga-card-footer">
-                        <span>👁 <?= number_format($m['TotalViews'] ?? 0) ?></span>
-                        <span>📦 <?= number_format($m['VolumesSold'] ?? 0) ?></span>
-                        <?php if ($role === 'Studio'): ?>
-                            <a href="<?= BASE ?>/bids/submit.php?manga_id=<?= $m['MangaID'] ?>"
-                               class="btn btn-sm">Bid</a>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
 </main>
 <?php require_once '../includes/footer.php'; ?>
+<script>
+    const searchInput = document.querySelector('input[name="q"]');
+    const genreSelect = document.querySelector('select[name="genre"]');
+    const sortSelect  = document.querySelector('select[name="sort"]');
+    const resultsDiv  = document.getElementById('search-results');
+
+    let debounceTimer;
+
+    function fetchResults() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const q     = searchInput.value;
+            const genre = genreSelect.value;
+            const sort  = sortSelect.value;
+            const url   = `?q=${encodeURIComponent(q)}&genre=${genre}&sort=${sort}&ajax=1`;
+
+            fetch(url)
+                .then(r => r.json())
+                .then(data => {
+                    resultsDiv.innerHTML = data.html;
+                    document.getElementById('result-count').textContent = data.count;
+                    searchInput.focus();
+                });
+        }, 300);
+    }
+
+    searchInput.addEventListener('input', fetchResults);
+    genreSelect.addEventListener('change', fetchResults);
+    sortSelect.addEventListener('change', fetchResults);
+</script>
 </body>
 </html>

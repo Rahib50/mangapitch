@@ -15,10 +15,3 @@ function requireRole(string ...$roles): void {
     }
 }
 
-/*  Usage examples:
-    requireLogin();                          // any logged-in user
-    requireRole('Mangaka');                  // Mangaka only
-    requireRole('Studio');                   // Studio only
-    requireRole('Admin');                    // Admin only
-    requireRole('Mangaka', 'Admin');         // multiple roles
-*/

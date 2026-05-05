@@ -9,7 +9,7 @@ $pdo    = getPDO();
 $userID = $_SESSION['user_id'];
 $role   = $_SESSION['role'];
 
-// ── Delete single message ─────────────────────────────────────
+//Delete single message
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_message_id'])) {
     $deleteID = (int)$_POST['delete_message_id'];
     // Only allow sender to delete
@@ -182,8 +182,86 @@ if ($withID) {
 </main>
 
 <script>
-    const thread = document.getElementById('thread');
+    const thread   = document.getElementById('thread');
+    const withID   = <?= $withID ? (int)$withID : 'null' ?>;
+    const myID     = <?= (int)$userID ?>;
+    const BASE     = '<?= BASE ?>';
+
     if (thread) thread.scrollTop = thread.scrollHeight;
+
+    if (thread && withID) {
+        let lastTS = <?php
+            if (!empty($threadMessages)) {
+                echo '"' . end($threadMessages)['Timestamp'] . '"';
+            } else {
+                echo '"1970-01-01 00:00:00"';
+            }
+        ?>;
+
+        function createBubble(msg) {
+            const mine = msg.SenderID == myID;
+            const wrap = document.createElement('div');
+            wrap.className = 'bubble-wrap ' + (mine ? 'mine' : 'theirs');
+            wrap.dataset.messageId = msg.MessageID;
+
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.textContent = msg.MessageText;
+
+            const time = document.createElement('span');
+            time.className = 'bubble-time';
+            time.textContent = msg.formatted_time;
+
+            wrap.appendChild(bubble);
+            wrap.appendChild(time);
+
+            // Add delete button for own messages
+            if (mine) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.style.margin = '0';
+
+                const delInput = document.createElement('input');
+                delInput.type = 'hidden';
+                delInput.name = 'delete_message_id';
+                delInput.value = msg.MessageID;
+
+                const withInput = document.createElement('input');
+                withInput.type = 'hidden';
+                withInput.name = 'with_id';
+                withInput.value = withID;
+
+                const delBtn = document.createElement('button');
+                delBtn.type = 'submit';
+                delBtn.className = 'btn-delete';
+                delBtn.textContent = '🗑';
+                delBtn.onclick = () => confirm('Delete this message?') || event.preventDefault();
+
+                form.appendChild(delInput);
+                form.appendChild(withInput);
+                form.appendChild(delBtn);
+                wrap.appendChild(form);
+            }
+
+            return wrap;
+        }
+
+        // Poll every 3 seconds
+        setInterval(function () {
+            fetch(`${BASE}/messages/poll.php?with=${withID}&last_ts=${encodeURIComponent(lastTS)}`)
+                .then(r => r.json())
+                .then(messages => {
+                    if (messages.length > 0) {
+                        messages.forEach(msg => {
+                            thread.appendChild(createBubble(msg));
+                            lastTS = msg.Timestamp;
+                        });
+                        thread.scrollTop = thread.scrollHeight;
+                    }
+                })
+                .catch(err => console.error('Poll error:', err));
+        }, 3000);
+    }
 </script>
 
 <?php require_once '../includes/footer.php'; ?>

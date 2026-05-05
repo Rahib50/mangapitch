@@ -17,6 +17,7 @@ if (!$mangaID) {
 
 $stmt = $pdo->prepare("
     SELECT m.MangaID, m.Title, m.Synopsis, m.PublishDate, m.MangakaID,
+           m.CoverImage, m.PanelImages,
            u.Name AS MangakaName,
            a.TotalViews, a.VolumesSold
     FROM Manga m
@@ -41,6 +42,8 @@ $gStmt = $pdo->prepare("
 $gStmt->execute([$mangaID]);
 $genres = $gStmt->fetchAll(PDO::FETCH_COLUMN);
 
+$panels = $manga['PanelImages'] ? json_decode($manga['PanelImages'], true) : [];
+
 $existingBid = null;
 if ($role === 'Studio') {
     $bStmt = $pdo->prepare("
@@ -62,23 +65,34 @@ if ($role === 'Studio') {
 <?php require_once '../includes/header.php'; ?>
 <main class="container">
     <div class="manga-detail">
-        <div class="manga-detail-header">
-            <h2><?= htmlspecialchars($manga['Title']) ?></h2>
-            <p class="manga-author">by <?= htmlspecialchars($manga['MangakaName']) ?></p>
-            <div class="genre-tags">
-                <?php foreach ($genres as $g): ?>
-                    <span class="tag"><?= htmlspecialchars($g) ?></span>
-                <?php endforeach; ?>
-            </div>
-        </div>
+        <div class="manga-hero">
+            <?php if ($manga['CoverImage']): ?>
+                <div class="manga-cover">
+                    <img src="<?= BASE ?>/uploads/covers/<?= htmlspecialchars($manga['CoverImage']) ?>"
+                         alt="Cover — <?= htmlspecialchars($manga['Title']) ?>">
+                </div>
+            <?php endif; ?>
+            <div class="manga-info">
+                <h2><?= htmlspecialchars($manga['Title']) ?></h2>
+                <p class="manga-author">by <?= htmlspecialchars($manga['MangakaName']) ?></p>
 
-        <div class="manga-detail-body">
-            <p class="manga-synopsis">
-                <?= nl2br(htmlspecialchars($manga['Synopsis'] ?? 'No synopsis available.')) ?>
-            </p>
-            <p><strong>Published:</strong>
-                <?= $manga['PublishDate'] ? date('F j, Y', strtotime($manga['PublishDate'])) : '—' ?>
-            </p>
+                <div class="genre-tags">
+                    <?php foreach ($genres as $g): ?>
+                        <span class="tag"><?= htmlspecialchars($g) ?></span>
+                    <?php endforeach; ?>
+                </div>
+
+                //scrollable synopsis
+                <div class="manga-synopsis-wrap">
+                    <p class="manga-synopsis">
+                        <?= nl2br(htmlspecialchars($manga['Synopsis'] ?? 'No synopsis available.')) ?>
+                    </p>
+                </div>
+
+                <p class="manga-publish">
+                     Published: <?= $manga['PublishDate'] ? date('F j, Y', strtotime($manga['PublishDate'])) : '—' ?>
+                </p>
+            </div>
         </div>
 
         <div class="analytics-strip">
@@ -90,6 +104,25 @@ if ($role === 'Studio') {
                 <span class="stat-value"><?= number_format($manga['VolumesSold'] ?? 0) ?></span>
                 <span class="stat-label">Volumes Sold</span>
             </div>
+        </div>
+
+        <?php if (!empty($panels)): ?>
+            <div class="manga-panels">
+                <h3>Panels</h3>
+                <div class="panel-grid">
+                    <?php foreach ($panels as $panel): ?>
+                        <div class="panel-item" onclick="openLightbox('<?= BASE ?>/uploads/panels/<?= htmlspecialchars($panel) ?>')">
+                            <img src="<?= BASE ?>/uploads/panels/<?= htmlspecialchars($panel) ?>"
+                                 alt="Panel">
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <div id="lightbox" onclick="closeLightbox()">
+            <span id="lightbox-close">✕</span>
+            <img id="lightbox-img" src="" alt="Panel fullview">
         </div>
 
         <div class="manga-actions">
@@ -114,11 +147,28 @@ if ($role === 'Studio') {
 
             <?php if ($role === 'Mangaka' && $manga['MangakaID'] == $userID): ?>
                 <a href="<?= BASE ?>/manga/upload.php?edit=<?= $mangaID ?>" class="btn">Edit</a>
+                <a href="<?= BASE ?>/manga/panels.php?id=<?= $mangaID ?>" class="btn btn-secondary">Manage Panels</a>
                 <a href="<?= BASE ?>/bids/index.php" class="btn btn-secondary">View Bids</a>
             <?php endif; ?>
         </div>
     </div>
 </main>
 <?php require_once '../includes/footer.php'; ?>
+<script>
+    function openLightbox(src) {
+        document.getElementById('lightbox-img').src = src;
+        document.getElementById('lightbox').classList.add('active');
+    }
+    function closeLightbox() {
+        document.getElementById('lightbox').classList.remove('active');
+        document.getElementById('lightbox-img').src = '';
+    }
+    // Close on Escape key
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeLightbox();
+    });
+    // Prevent closing when clicking the image itself
+    document.getElementById('lightbox-img').addEventListener('click', e => e.stopPropagation());
+</script>
 </body>
 </html>
