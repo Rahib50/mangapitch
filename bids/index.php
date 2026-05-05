@@ -31,7 +31,7 @@ if ($role === 'Mangaka' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Accept this bid
                     $pdo->prepare("UPDATE Bids SET Status = 'Accepted' WHERE BidID = ?")
                         ->execute([$bidID]);
-                    // Reject all other pending bids on the same manga
+                    // Reject all other pending bids 
                     $pdo->prepare("
                         UPDATE Bids SET Status = 'Rejected'
                         WHERE MangaID = ? AND BidID <> ? AND Status = 'Pending'

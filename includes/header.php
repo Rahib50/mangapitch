@@ -1,7 +1,4 @@
 <?php
-/* ============================================================
-   includes/header.php
-   ============================================================ */
 require_once __DIR__ . '/../config/db.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 $role = $_SESSION['role'] ?? null;
