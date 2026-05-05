@@ -9,7 +9,7 @@ $pdo    = getPDO();
 $userID = $_SESSION['user_id'];
 $role   = $_SESSION['role'];
 
-// ── Mangaka: handle accept/reject ────────────────────────────
+//Mangaka: handle accept/reject
 if ($role === 'Mangaka' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $bidID  = (int)($_POST['bid_id'] ?? 0);
     $action = $_POST['action'] ?? '';

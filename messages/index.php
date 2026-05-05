@@ -9,7 +9,7 @@ $pdo    = getPDO();
 $userID = $_SESSION['user_id'];
 $role   = $_SESSION['role'];
 
-// ── Delete single message ─────────────────────────────────────
+//Delete single message
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_message_id'])) {
     $deleteID = (int)$_POST['delete_message_id'];
     // Only allow sender to delete
