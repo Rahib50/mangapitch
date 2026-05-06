@@ -82,7 +82,6 @@ if ($role === 'Studio') {
                     <?php endforeach; ?>
                 </div>
 
-                //scrollable synopsis
                 <div class="manga-synopsis-wrap">
                     <p class="manga-synopsis">
                         <?= nl2br(htmlspecialchars($manga['Synopsis'] ?? 'No synopsis available.')) ?>
@@ -146,7 +145,6 @@ if ($role === 'Studio') {
             <?php endif; ?>
 
             <?php if ($role === 'Mangaka' && $manga['MangakaID'] == $userID): ?>
-                <a href="<?= BASE ?>/manga/upload.php?edit=<?= $mangaID ?>" class="btn">Edit</a>
                 <a href="<?= BASE ?>/manga/panels.php?id=<?= $mangaID ?>" class="btn btn-secondary">Manage Panels</a>
                 <a href="<?= BASE ?>/bids/index.php" class="btn btn-secondary">View Bids</a>
             <?php endif; ?>
