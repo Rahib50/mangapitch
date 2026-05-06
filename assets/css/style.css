@@ -194,7 +194,7 @@ legend { padding: 0 .5rem; font-weight: 600; font-size: .8rem; color: var(--text
     margin-inline: auto;
     width: max-content;
     padding: .15rem 1.5rem;
-    border-radius: 1px;
+    border-radius: 5px;
     font-size: .72rem;
     font-weight: 700;
     text-transform: uppercase;
