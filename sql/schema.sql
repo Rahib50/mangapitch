@@ -6,7 +6,7 @@ CREATE DATABASE IF NOT EXISTS `mangapitch`
   COLLATE utf8mb4_unicode_ci;
 USE `mangapitch`;
 
-
+-- main user table
 CREATE TABLE IF NOT EXISTS `Users` (
   `UserID` INT NOT NULL AUTO_INCREMENT,
   `Name` VARCHAR(100) NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS `Users` (
   UNIQUE KEY `uq_users_email` (`Email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
+-- extension of users
 CREATE TABLE IF NOT EXISTS `Mangaka` (
   `UserID` INT NOT NULL,
   `PortfolioLink` VARCHAR(255) DEFAULT NULL,
@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS `Mangaka` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- extension of users
 CREATE TABLE IF NOT EXISTS `Studio` (
   `UserID` INT NOT NULL,
   `RegistrationNumber` VARCHAR(100) DEFAULT NULL,
@@ -37,6 +38,7 @@ CREATE TABLE IF NOT EXISTS `Studio` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- extension of users
 CREATE TABLE IF NOT EXISTS `Admin` (
   `UserID` INT NOT NULL,
   `AdminLevel` TINYINT NOT NULL DEFAULT 1,
@@ -46,7 +48,7 @@ CREATE TABLE IF NOT EXISTS `Admin` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
+-- Many-to-many self-join on Users for connections (e.g. followers, collaborators)
 CREATE TABLE IF NOT EXISTS `Connections` (
   `UserID_A` INT NOT NULL,
   `UserID_B` INT NOT NULL,
@@ -60,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `Connections` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
+-- manga uploaded by mangaka, with genre mapping and analytics
 CREATE TABLE IF NOT EXISTS `Manga` (
   `MangaID` INT NOT NULL AUTO_INCREMENT,
   `MangakaID` INT NOT NULL,
@@ -77,6 +79,7 @@ CREATE TABLE IF NOT EXISTS `Manga` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- genre table
 CREATE TABLE IF NOT EXISTS `Genre` (
   `GenreID` INT NOT NULL AUTO_INCREMENT,
   `GenreName` VARCHAR(100) NOT NULL,
@@ -84,6 +87,7 @@ CREATE TABLE IF NOT EXISTS `Genre` (
   UNIQUE KEY `uq_genre_name` (`GenreName`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- genre many to many relation
 CREATE TABLE IF NOT EXISTS `Manga_Genre_Map` (
   `MangaID` INT NOT NULL,
   `GenreID` INT NOT NULL,
@@ -97,6 +101,7 @@ CREATE TABLE IF NOT EXISTS `Manga_Genre_Map` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- analytics one to one for manga (how it performed etc)
 CREATE TABLE IF NOT EXISTS `Analytics` (
   `AnalyticsID` INT NOT NULL AUTO_INCREMENT,
   `MangaID` INT NOT NULL,
@@ -109,7 +114,7 @@ CREATE TABLE IF NOT EXISTS `Analytics` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
+-- studio bids on manga
 CREATE TABLE IF NOT EXISTS `Bids` (
   `BidID` INT NOT NULL AUTO_INCREMENT,
   `MangaID` INT NOT NULL,
@@ -128,6 +133,7 @@ CREATE TABLE IF NOT EXISTS `Bids` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- created when bids are accepted, one to one with bids
 CREATE TABLE IF NOT EXISTS `Contracts` (
   `ContractID` INT NOT NULL AUTO_INCREMENT,
   `BidID` INT NOT NULL,
@@ -140,7 +146,7 @@ CREATE TABLE IF NOT EXISTS `Contracts` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
+-- DM between two users (mangaka, studio, admin)
 CREATE TABLE IF NOT EXISTS `Messages` (
   `MessageID` INT NOT NULL AUTO_INCREMENT,
   `SenderID` INT NOT NULL,
@@ -158,7 +164,7 @@ CREATE TABLE IF NOT EXISTS `Messages` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
+-- genre population with insert to avoid duplicates
 INSERT INTO `Genre` (`GenreName`) VALUES
   ('Action'), ('Adventure'), ('Comedy'), ('Drama'),
   ('Fantasy'), ('Horror'), ('Romance'), ('Sci-Fi'),

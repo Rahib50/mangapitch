@@ -5,6 +5,7 @@ requireRole('Mangaka');
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
+// PHP Data Objects (PDO) for database interaction
 $pdo     = getPDO();
 $userID  = $_SESSION['user_id'];
 $mangaID = isset($_GET['id']) ? (int)$_GET['id'] : 0;
