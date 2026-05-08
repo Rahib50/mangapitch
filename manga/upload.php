@@ -61,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             for ($i = 0; $i < $count; $i++) {
                 if ($panels['error'][$i] !== UPLOAD_ERR_OK) continue;
 
+                // handles for multiple file uploads
                 $singleFile = [
                     'name'     => $panels['name'][$i],
                     'type'     => $panels['type'][$i],
@@ -109,7 +110,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->commit();
                 $success = 'Manga "' . htmlspecialchars($title) . '" uploaded successfully.';
 
-            } catch (PDOException $e) {
+            } 
+            // ACID concept: Atomicity, Consistency, Isolation, Durability
+            catch (PDOException $e) {
                 $pdo->rollBack();
                 $error = 'Upload failed. Please try again.';
             }

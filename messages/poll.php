@@ -1,6 +1,6 @@
 <?php
-/* — Returns new messages since a given timestamp as JSON
-— Called by JS every 3 seconds from messages/index.php */
+// — Returns new messages since a given timestamp as JSON
+// Called by JS every 3 seconds from messages
 require_once '../config/db.php';
 require_once '../includes/auth_guard.php';
 requireLogin();
